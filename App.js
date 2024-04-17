@@ -5,14 +5,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const QUESTIONS_KEY = 'quiz_questions';
 
 export default function App() {
-  const [timerDuration, setTimerDuration] = useState(10); // 10 seconds timer duration
+  const [timerDuration, setTimerDuration] = useState(10);
   const [remainingTime, setRemainingTime] = useState(timerDuration);
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState([]);
   const [userName, setUserName] = useState('');
   const [quizStarted, setQuizStarted] = useState(false);
-  let timer; // Variable to hold the timer reference
+  let timer;
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -52,33 +52,30 @@ export default function App() {
   const startQuiz = () => {
     if (userName.trim() !== '') {
       setQuizStarted(true);
-      setRemainingTime(timerDuration); // Reset the timer duration
-      initializeTimer(); // Start the timer
+      setRemainingTime(timerDuration);
+      initializeTimer();
     } else {
       alert('Please enter your name');
     }
   };
 
   const initializeTimer = () => {
-    // Start the timer
     timer = setInterval(() => {
       if (remainingTime > 0) {
         setRemainingTime(prevTime => prevTime - 1);
       } else {
-        clearInterval(timer); // Clear the timer when time runs out
-        handleTimeout(); // Handle the timeout event
+        clearInterval(timer);
+        handleTimeout();
       }
     }, 1000);
   };
 
   const handleTimeout = () => {
     alert('Time is up! Your answers will be submitted automatically.');
-    submitAnswers(); // Implement submitAnswers function
+    submitAnswers();
   };
 
   const submitAnswers = () => {
-    // Here you can implement the logic to submit user answers to a server or perform any other action
-    // For demonstration purposes, let's just log the user answers to the console
     console.log('Submitting user answers:', userAnswers);
   };
 
@@ -87,16 +84,11 @@ export default function App() {
     newAnswers[currentQuestionIndex] = optionIndex;
     setUserAnswers(newAnswers);
 
-    // Check if it's the last question
     if (currentQuestionIndex === questions.length - 1) {
-      // Calculate the final score
       const finalScore = calculateScore();
-      // Display the final score
       alert(`Hi ${userName}! Your final score is: ${finalScore}`);
-      // Restart the quiz
       handleRestart();
     } else {
-      // Move to the next question
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
@@ -118,14 +110,13 @@ export default function App() {
     setUserAnswers([]);
     setUserName('');
     setQuizStarted(false);
-    clearInterval(timer); // Clear the timer when the quiz is restarted
+    clearInterval(timer);
   };
 
   const renderQuestion = () => {
     if (!quizStarted) {
       return (
         <View style={styles.nameInputContainer}>
-          
           <Text style={styles.label}>Enter your name:</Text>
           <TextInput
             style={styles.input}
