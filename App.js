@@ -5,51 +5,81 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const QUESTIONS_KEY = 'quiz_questions';
 
 export default function App() {
+  const [timerDuration, setTimerDuration] = useState(10); // 10 seconds timer duration
+  const [remainingTime, setRemainingTime] = useState(timerDuration);
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState([]);
   const [userName, setUserName] = useState('');
   const [quizStarted, setQuizStarted] = useState(false);
+  let timer; // Variable to hold the timer reference
 
   useEffect(() => {
-    // Load quiz questions from AsyncStorage when the component mounts
-    loadQuestions();
+    const loadQuestions = async () => {
+      try {
+        const sampleQuestions = [
+          {
+            question: 'What is the capital of France?',
+            options: ['Paris', 'London', 'Berlin', 'Rome'],
+            correctAnswer: 0,
+          },
+          {
+            question: 'Who wrote "Romeo and Juliet"?',
+            options: ['William Shakespeare', 'Jane Austen', 'Leo Tolstoy', 'Charles Dickens'],
+            correctAnswer: 3,
+          },
+          {
+            question: 'Who is my crush?',
+            options: ['Mae Monterola', 'Angeli Khang', 'Kitty Duterte', 'Via Gonzales'],
+            correctAnswer: 0,
+          },
+        ];
+
+        await AsyncStorage.setItem(QUESTIONS_KEY, JSON.stringify(sampleQuestions));
+        setQuestions(sampleQuestions);
+      } catch (error) {
+        console.error('Error saving questions:', error);
+      }
+    };
+
+    const initializeQuiz = async () => {
+      await loadQuestions();
+    };
+
+    initializeQuiz();
   }, []);
-
-  const loadQuestions = async () => {
-    const sampleQuestions = [
-      {
-        question: 'What is the capital of France?',
-        options: ['Paris', 'London', 'Berlin', 'Rome'],
-        correctAnswer: 0, // Index of the correct answer
-      },
-      {
-        question: 'Who wrote "Romeo and Juliet"?',
-        options: ['William Shakespeare', 'Jane Austen', 'Leo Tolstoy', 'Charles Dickens'],
-        correctAnswer: 3,
-      },
-      {
-        question: 'Who is my crush?',
-        options: ['Mae Monterola', 'Angeli Khang', 'Kitty Duterte', 'Via Gonzales'],
-        correctAnswer: 0,
-      },
-      // Add more sample questions here
-    ];
-
-    try {
-      await AsyncStorage.setItem(QUESTIONS_KEY, JSON.stringify(sampleQuestions));
-      setQuestions(sampleQuestions);
-    } catch (error) {
-      console.error('Error saving questions:', error);
-    }
-  };
 
   const startQuiz = () => {
     if (userName.trim() !== '') {
       setQuizStarted(true);
+      setRemainingTime(timerDuration); // Reset the timer duration
+      initializeTimer(); // Start the timer
     } else {
       alert('Please enter your name');
     }
+  };
+
+  const initializeTimer = () => {
+    // Start the timer
+    timer = setInterval(() => {
+      if (remainingTime > 0) {
+        setRemainingTime(prevTime => prevTime - 1);
+      } else {
+        clearInterval(timer); // Clear the timer when time runs out
+        handleTimeout(); // Handle the timeout event
+      }
+    }, 1000);
+  };
+
+  const handleTimeout = () => {
+    alert('Time is up! Your answers will be submitted automatically.');
+    submitAnswers(); // Implement submitAnswers function
+  };
+
+  const submitAnswers = () => {
+    // Here you can implement the logic to submit user answers to a server or perform any other action
+    // For demonstration purposes, let's just log the user answers to the console
+    console.log('Submitting user answers:', userAnswers);
   };
 
   const handleAnswer = (optionIndex) => {
@@ -88,12 +118,14 @@ export default function App() {
     setUserAnswers([]);
     setUserName('');
     setQuizStarted(false);
+    clearInterval(timer); // Clear the timer when the quiz is restarted
   };
 
   const renderQuestion = () => {
     if (!quizStarted) {
       return (
         <View style={styles.nameInputContainer}>
+          
           <Text style={styles.label}>Enter your name:</Text>
           <TextInput
             style={styles.input}
@@ -112,6 +144,7 @@ export default function App() {
 
       return (
         <View>
+          <Text style={styles.timer}>Time Remaining: {remainingTime} seconds</Text>
           <Text style={styles.score}>Score: {score}</Text>
           <Text style={styles.question}>{currentQuestion.question}</Text>
           {currentQuestion.options.map((option, index) => (
@@ -204,6 +237,10 @@ const styles = StyleSheet.create({
   },
   score: {
     fontSize: 20,
+    marginBottom: 10,
+  },
+  timer: {
+    fontSize: 16,
     marginBottom: 10,
   },
 });
